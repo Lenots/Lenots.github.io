@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 5.4.0">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@5.15.3/css/all.min.css" integrity="sha256-2H3fkXt6FEmrReK448mDVGKb3WW2ZZw35gI7vqHOE4Y=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"lenots.github.io","root":"/","images":"/images","scheme":"Muse","version":"8.7.0","exturl":false,"sidebar":{"position":"right","display":"post","padding":18,"offset":12},"copycode":false,"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+<meta name="description" content="Unreal Engine child component is always in the world’s origin  在虚幻引擎中,使用C++和蓝图来实现子组件的选择功能时,会发现子组件总是在游戏运行时偏移到世界的原点.  我们希望子组件的位置与父组件相同.  如果没有经验,这个问题就不好解决.因为一些思路看起来正确,实际上达不到效果.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Unreal Engine 子组件总是在世界原点生成的问题">
+<meta property="og:url" content="https://lenots.github.io/2021/08/19/ue-child-component-offset/index.html">
+<meta property="og:site_name" content="Lenots">
+<meta property="og:description" content="Unreal Engine child component is always in the world’s origin  在虚幻引擎中,使用C++和蓝图来实现子组件的选择功能时,会发现子组件总是在游戏运行时偏移到世界的原点.  我们希望子组件的位置与父组件相同.  如果没有经验,这个问题就不好解决.因为一些思路看起来正确,实际上达不到效果.">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2021-08-19T07:25:58.000Z">
+<meta property="article:modified_time" content="2021-08-19T11:30:52.052Z">
+<meta property="article:author" content="Lenots">
+<meta property="article:tag" content="Unreal Engine">
+<meta property="article:tag" content="C++">
+<meta property="article:tag" content="Blueprint">
+<meta property="article:tag" content="Component">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://lenots.github.io/2021/08/19/ue-child-component-offset/">
+
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://lenots.github.io/2021/08/19/ue-child-component-offset/","path":"2021/08/19/ue-child-component-offset/","title":"Unreal Engine 子组件总是在世界原点生成的问题"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Unreal Engine 子组件总是在世界原点生成的问题 | Lenots</title>
+  
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<style>mjx-container[jax="SVG"] {
+  direction: ltr;
+}
+
+mjx-container[jax="SVG"] > svg {
+  overflow: visible;
+}
+
+mjx-container[jax="SVG"][display="true"] {
+  display: block;
+  text-align: center;
+  margin: 1em 0;
+}
+
+mjx-container[jax="SVG"][justify="left"] {
+  text-align: left;
+}
+
+mjx-container[jax="SVG"][justify="right"] {
+  text-align: right;
+}
+
+g[data-mml-node="merror"] > g {
+  fill: red;
+  stroke: red;
+}
+
+g[data-mml-node="merror"] > rect[data-background] {
+  fill: yellow;
+  stroke: none;
+}
+
+g[data-mml-node="mtable"] > line[data-line] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > rect[data-frame] {
+  stroke-width: 70px;
+  fill: none;
+}
+
+g[data-mml-node="mtable"] > .mjx-dashed {
+  stroke-dasharray: 140;
+}
+
+g[data-mml-node="mtable"] > .mjx-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 0,140;
+}
+
+g[data-mml-node="mtable"] > svg {
+  overflow: visible;
+}
+
+[jax="SVG"] mjx-tool {
+  display: inline-block;
+  position: relative;
+  width: 0;
+  height: 0;
+}
+
+[jax="SVG"] mjx-tool > mjx-tip {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+mjx-tool > mjx-tip {
+  display: inline-block;
+  padding: .2em;
+  border: 1px solid #888;
+  font-size: 70%;
+  background-color: #F8F8F8;
+  color: black;
+  box-shadow: 2px 2px 5px #AAAAAA;
+}
+
+g[data-mml-node="maction"][data-toggle] {
+  cursor: pointer;
+}
+
+mjx-status {
+  display: block;
+  position: fixed;
+  left: 1em;
+  bottom: 1em;
+  min-width: 25%;
+  padding: .2em .4em;
+  border: 1px solid #888;
+  font-size: 90%;
+  background-color: #F8F8F8;
+  color: black;
+}
+
+foreignObject[data-mjx-xml] {
+  font-family: initial;
+  line-height: normal;
+  overflow: visible;
+}
+
+.MathJax path {
+  stroke-width: 3;
+}
+
+mjx-container[display="true"] {
+  overflow: auto hidden;
+}
+
+mjx-container[display="true"] + br {
+  display: none;
+}
+</style></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <h1 class="site-title">Lenots</h1>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">总还是得有人仰望星空</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu">
+        <li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li>
+        <li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li>
+        <li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li>
+        <li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li>
+        <li class="menu-item menu-item-about"><a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup"><div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocapitalize="off" maxlength="80"
+           placeholder="搜索..." spellcheck="false"
+           type="search" class="search-input">
+  </div>
+  <span class="popup-btn-close" role="button">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div class="search-result-container no-result">
+  <div class="search-result-icon">
+    <i class="fa fa-spinner fa-pulse fa-5x"></i>
+  </div>
+</div>
+
+    </div>
+  </div>
+
+</div>
+        
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Unreal-Engine-child-component-is-always-in-the-world%E2%80%99s-origin"><span class="nav-number">1.</span> <span class="nav-text">Unreal Engine child component is always in the world’s origin</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BE%8B%E5%A6%82"><span class="nav-number">2.</span> <span class="nav-text">例如</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%88%91%E4%BB%AC%E5%B0%9D%E8%AF%95%E4%BB%A5%E4%B8%8B%E6%96%B9%E6%B3%95"><span class="nav-number">3.</span> <span class="nav-text">我们尝试以下方法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E6%AD%A3%E7%A1%AE%E5%A4%84%E7%90%86%E6%96%B9%E6%B3%95"><span class="nav-number">4.</span> <span class="nav-text">正确处理方法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E9%99%84%E5%BD%95"><span class="nav-number">5.</span> <span class="nav-text">附录</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-overview">
+            <div class="site-author site-overview-item animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">Lenots</p>
+  <div class="site-description" itemprop="description">无数死了的人中的一个而已,没什么可说的</div>
+</div>
+<div class="site-state-wrap site-overview-item animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author site-overview-item animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/Lenots" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;Lenots" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-dimmer"></div>
+
+
+    </header>
+
+    
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+  <a href="https://github.com/Lenots" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://lenots.github.io/2021/08/19/ue-child-component-offset/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="Lenots">
+      <meta itemprop="description" content="无数死了的人中的一个而已,没什么可说的">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Lenots">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Unreal Engine 子组件总是在世界原点生成的问题
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2021-08-19 15:25:58" itemprop="dateCreated datePublished" datetime="2021-08-19T15:25:58+08:00">2021-08-19</time>
+    </span>
+      <span class="post-meta-item">
+        <span class="post-meta-item-icon">
+          <i class="far fa-calendar-check"></i>
+        </span>
+        <span class="post-meta-item-text">更新于</span>
+        <time title="修改时间：2021-08-19 19:30:52" itemprop="dateModified" datetime="2021-08-19T19:30:52+08:00">2021-08-19</time>
+      </span>
+
+  
+    <span class="post-meta-item" title="阅读次数" id="busuanzi_container_page_pv">
+      <span class="post-meta-item-icon">
+        <i class="far fa-eye"></i>
+      </span>
+      <span class="post-meta-item-text">阅读次数：</span>
+      <span id="busuanzi_value_page_pv"></span>
+    </span>
+</div>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+        <h1 id="Unreal-Engine-child-component-is-always-in-the-world’s-origin"><a href="#Unreal-Engine-child-component-is-always-in-the-world’s-origin" class="headerlink" title="Unreal Engine child component is always in the world’s origin"></a>Unreal Engine child component is always in the world’s origin</h1><p>  在虚幻引擎中,使用C++和蓝图来实现<strong>子组件</strong>的<strong>选择</strong>功能时,会发现子组件总是在游戏运行时偏移到世界的原点.<br>  我们希望子组件的位置与父组件相同.<br>  如果没有经验,这个问题就不好解决.因为一些思路看起来正确,实际上达不到效果.</p>
+<span id="more"></span>
+<h1 id="例如"><a href="#例如" class="headerlink" title="例如"></a>例如</h1><p>我们创建一个actor,我们计划actor中有两个组件.</p>
+<ul>
+<li>一个是Rootcompnent,类型为Scenecomponent.</li>
+<li>另一个是ShapeComponent,我们<strong>在蓝图中选择它的类型</strong>,Sphere或Box类型等.</li>
+<li>我们希望ShapeComponent为Rootcompnent的子组件.并且Rootcompnent的位置与ShapeComponent的位置默认在世界中同一点.</li>
+</ul>
+<h1 id="我们尝试以下方法"><a href="#我们尝试以下方法" class="headerlink" title="我们尝试以下方法"></a>我们尝试以下方法</h1><ul>
+<li>方法一<ul>
+<li>在actor 的h中<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">UPROPERTY</span>(EditAnywhere, BlueprintReadWrite, Category = <span class="string">"ScreenDebugMessage"</span>)</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UShapeComponent</span>* <span class="title">ShapeComponent</span>;</span></span><br></pre></td></tr></table></figure></li>
+<li>在actor 的cpp构造函数中<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">RootComponent = CreateDefaultSubobject&lt;USceneComponent&gt;(<span class="built_in">TEXT</span>(<span class="string">"SceneComponent"</span>));</span><br></pre></td></tr></table></figure></li>
+<li>在actor的BeginPlay()中<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Super::<span class="built_in">BeginPlay</span>();</span><br><span class="line"><span class="keyword">if</span>(ShapeComponent)</span><br><span class="line">{</span><br><span class="line">  ShapeComponent-&gt;<span class="built_in">AttachToComponent</span>(RootComponentFAttachmentTransformRules::KeepRelativeTransform);</span><br><span class="line">  <span class="comment">//这一句代码 有或没有 结果相同</span></span><br><span class="line">  <span class="comment">//ShapeComponent-&gt;SetRelativeLocation({0,0,0});</span></span><br><span class="line">}</span><br></pre></td></tr></table></figure></li>
+<li>在蓝图中选择ShapeComponent的类型为Box,运行几次,发现ShapeComponent跑到了世界原点.<mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.452ex" xmlns="http://www.w3.org/2000/svg" width="4.072ex" height="2.149ex" role="img" focusable="false" viewBox="0 -750 1800 950"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mstyle" fill="red" stroke="red"><g data-mml-node="TeXAtom" data-mjx-texclass="ORD"><g data-mml-node="mi"><text data-variant="italic" transform="scale(1,-1)" font-size="884px" font-family="serif" font-style="italic">失</text></g><g data-mml-node="mi" transform="translate(900,0)"><text data-variant="italic" transform="scale(1,-1)" font-size="884px" font-family="serif" font-style="italic">败</text></g></g></g></g></g></svg></mjx-container></li>
+</ul>
+</li>
+<li>方法二<ul>
+<li>在actor 的h中<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">UPROPERTY</span>(EditAnywhere, BlueprintReadWrite, Category = <span class="string">"ScreenDebugMessage"</span>)</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UShapeComponent</span>* <span class="title">ShapeComponent</span>;</span></span><br></pre></td></tr></table></figure></li>
+<li>在actor 的cpp构造函数中 我们先为ShapeComponent指定一个具体类型,为的是进行父组件绑定<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">RootComponent = CreateDefaultSubobject&lt;USceneComponent&gt;(<span class="built_in">TEXT</span>(<span class="string">"SceneComponent"</span>));</span><br><span class="line">ShapeComponent = CreateDefaultSubobject&lt;UBoxComponent&gt;(<span class="built_in">TEXT</span>(<span class="string">"ShapeComponent"</span>));</span><br><span class="line">ShapeComponent-&gt;<span class="built_in">SetupAttachment</span>(RootComponent);</span><br><span class="line"><span class="comment">//这一句代码 有或没有 结果相同</span></span><br><span class="line"><span class="comment">//ShapeComponent-&gt;SetRelativeLocation({0,0,0});</span></span><br></pre></td></tr></table></figure></li>
+<li>在蓝图中选择ShapeComponent的类型为Sphere(为的是改变默认类型,改成非box类型的都可以),运行几次,发现ShapeComponent跑到了世界原点.<mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.452ex" xmlns="http://www.w3.org/2000/svg" width="4.072ex" height="2.149ex" role="img" focusable="false" viewBox="0 -750 1800 950"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mstyle" fill="red" stroke="red"><g data-mml-node="TeXAtom" data-mjx-texclass="ORD"><g data-mml-node="mi"><text data-variant="italic" transform="scale(1,-1)" font-size="884px" font-family="serif" font-style="italic">失</text></g><g data-mml-node="mi" transform="translate(900,0)"><text data-variant="italic" transform="scale(1,-1)" font-size="884px" font-family="serif" font-style="italic">败</text></g></g></g></g></g></svg></mjx-container></li>
+</ul>
+</li>
+</ul>
+<p>  由此可以看出,想要实现功能,在构造函数或BeginPlay()中进行的Attach和位置调整都不管用.<br>  <del>我猜想  <strong>构造函数</strong> <strong>BeginPlay()</strong> <strong>蓝图对蓝图面板中设置的组件的特殊处理</strong> 的执行次序中,<strong>蓝图对蓝图面板中设置的组件的特殊处理</strong>最后执行.</del><br>  <del>这个特殊处理我并没有找到源码,就算找到源码,通常情况下我也不愿意修改. 因为对源码的修改意味着,每次升级引擎版本,我们都需要自己修改代码.</del>  </p>
+<h1 id="正确处理方法"><a href="#正确处理方法" class="headerlink" title="正确处理方法"></a>正确处理方法</h1><ul>
+<li>在蓝图面板中进行类型选择时,通过<strong>PostEditChangeProperty</strong>事件,<strong>及时进行子组件绑定</strong><ul>
+<li>在actor 的h中<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">UPROPERTY</span>(EditAnywhere, BlueprintReadWrite, Category = <span class="string">"ScreenDebugMessage"</span>)</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UShapeComponent</span>* <span class="title">ShapeComponent</span>;</span></span><br></pre></td></tr></table></figure></li>
+<li>在actor 的cpp构造函数中<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">RootComponent = CreateDefaultSubobject&lt;USceneComponent&gt;(<span class="built_in">TEXT</span>(<span class="string">"SceneComponent"</span>));</span><br></pre></td></tr></table></figure></li>
+<li>在actor的PostEditChangeProperty()中(actor名为AScreenDebugMessageOnCollision)<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">AScreenDebugMessageOnCollision::<span class="built_in">PostEditChangeProperty</span>(FPropertyChangedEvent&amp; PropertyChangedEvent)</span><br><span class="line">{</span><br><span class="line">  Super::<span class="built_in">PostEditChangeProperty</span>(PropertyChangedEvent);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span>(PropertyChangedEvent.Property != <span class="literal">nullptr</span>)</span><br><span class="line">  {</span><br><span class="line">    FName PropertyName = PropertyChangedEvent.Property-&gt;<span class="built_in">GetFName</span>();</span><br><span class="line">    <span class="keyword">if</span>( PropertyName == <span class="built_in">GET_MEMBER_NAME_CHECKED</span>(AScreenDebugMessageOnCollision,ShapeComponent) )</span><br><span class="line">    {</span><br><span class="line">      <span class="keyword">if</span>(ShapeComponent)</span><br><span class="line">      {</span><br><span class="line">        <span class="keyword">if</span>(!ShapeComponent-&gt;<span class="built_in">GetAttachParent</span>())</span><br><span class="line">        {</span><br><span class="line">          <span class="comment">// UE_LOG(LogTemp,Warning,TEXT("Parent NULL"))</span></span><br><span class="line">          ShapeComponent-&gt;<span class="built_in">AttachToComponent</span>(RootComponent,FAttachmentTransformRules::KeepRelativeTransform);</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        {</span><br><span class="line">          <span class="comment">// UE_LOG(LogTemp,Warning,TEXT("Parent has"))</span></span><br><span class="line">        }</span><br><span class="line">      }</span><br><span class="line">    }</span><br><span class="line">  }</span><br><span class="line"></span><br><span class="line">}</span><br></pre></td></tr></table></figure>
+<ul>
+<li>在蓝图中选择ShapeComponent的类型为任意类型,运行几次,发现ShapeComponent位置与父组件相同.<mjx-container class="MathJax" jax="SVG"><svg style="vertical-align: -0.452ex" xmlns="http://www.w3.org/2000/svg" width="4.072ex" height="2.149ex" role="img" focusable="false" viewBox="0 -750 1800 950"><g stroke="currentColor" fill="currentColor" stroke-width="0" transform="scale(1,-1)"><g data-mml-node="math"><g data-mml-node="mstyle" fill="green" stroke="green"><g data-mml-node="TeXAtom" data-mjx-texclass="ORD"><g data-mml-node="mi"><text data-variant="italic" transform="scale(1,-1)" font-size="884px" font-family="serif" font-style="italic">成</text></g><g data-mml-node="mi" transform="translate(900,0)"><text data-variant="italic" transform="scale(1,-1)" font-size="884px" font-family="serif" font-style="italic">功</text></g></g></g></g></g></svg></mjx-container></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h1 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h1><ul>
+<li>ScreenDebugMessageOnCollision.h<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Fill out your copyright notice in the Description page of Project Settings.</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> once</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"CoreMinimal.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"GameFramework/Actor.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"ScreenDebugMessageOnCollision.generated.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="built_in">UCLASS</span>()</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">SG_API</span> <span class="title">AScreenDebugMessageOnCollision</span> :</span> <span class="keyword">public</span> AActor</span><br><span class="line">{</span><br><span class="line">  <span class="built_in">GENERATED_BODY</span>()</span><br><span class="line">  </span><br><span class="line"><span class="keyword">public</span>:	</span><br><span class="line">  <span class="comment">// Sets default values for this actor's properties</span></span><br><span class="line">  <span class="built_in">AScreenDebugMessageOnCollision</span>();</span><br><span class="line"></span><br><span class="line">  <span class="built_in">UPROPERTY</span>(EditAnywhere, BlueprintReadWrite, Category = <span class="string">"ScreenDebugMessage"</span>)</span><br><span class="line">  <span class="keyword">float</span> ShowTime = <span class="number">3.f</span>;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">UPROPERTY</span>(EditAnywhere, BlueprintReadWrite, Category = <span class="string">"ScreenDebugMessage"</span>)</span><br><span class="line">  FString BeginOverlapDebugMsg = <span class="built_in">TEXT</span>(<span class="string">""</span>);</span><br><span class="line"></span><br><span class="line">  <span class="built_in">UPROPERTY</span>(EditAnywhere, BlueprintReadWrite, Category = <span class="string">"ScreenDebugMessage"</span>)</span><br><span class="line">  FString EndOverlapDebugMsg = <span class="built_in">TEXT</span>(<span class="string">""</span>);</span><br><span class="line"></span><br><span class="line">  uint64 LocalUID;</span><br><span class="line"></span><br><span class="line">  <span class="built_in">UPROPERTY</span>(EditAnywhere, BlueprintReadWrite, Category = <span class="string">"ScreenDebugMessage"</span>)</span><br><span class="line">  <span class="class"><span class="keyword">class</span> <span class="title">UShapeComponent</span>* <span class="title">ShapeComponent</span>;</span></span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">PostEditChangeProperty</span><span class="params">(FPropertyChangedEvent&amp; PropertyChangedEvent)</span> <span class="keyword">override</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">NotifyActorBeginOverlap</span><span class="params">(AActor* OtherActor)</span></span>;</span><br><span class="line"></span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">NotifyActorEndOverlap</span><span class="params">(AActor* OtherActor)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">protected</span>:</span><br><span class="line">  <span class="comment">// Called when the game starts or when spawned</span></span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">BeginPlay</span><span class="params">()</span> <span class="keyword">override</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span>:	</span><br><span class="line">  <span class="comment">// Called every frame</span></span><br><span class="line">  <span class="comment">// virtual void Tick(float DeltaTime) override;</span></span><br><span class="line"></span><br><span class="line">};</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li>ScreenDebugMessageOnCollision.cpp<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Fill out your copyright notice in the Description page of Project Settings.</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"ScreenDebugMessageOnCollision.h"</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"Components/ShapeComponent.h"</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Sets default values</span></span><br><span class="line">AScreenDebugMessageOnCollision::<span class="built_in">AScreenDebugMessageOnCollision</span>()</span><br><span class="line">{</span><br><span class="line">  <span class="comment">// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.</span></span><br><span class="line">  PrimaryActorTick.bCanEverTick = <span class="literal">false</span>;</span><br><span class="line"></span><br><span class="line">  <span class="comment">//获取本地的唯一ID 满足需求使用</span></span><br><span class="line">  LocalUID = (uint64)<span class="built_in">GetUniqueID</span>();</span><br><span class="line"></span><br><span class="line">  RootComponent = CreateDefaultSubobject&lt;USceneComponent&gt;(<span class="built_in">TEXT</span>(<span class="string">"SceneComponent"</span>));</span><br><span class="line"></span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">// Called when the game starts or when spawned</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">AScreenDebugMessageOnCollision::BeginPlay</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">  Super::<span class="built_in">BeginPlay</span>();</span><br><span class="line">  </span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="comment">// Called every frame</span></span><br><span class="line"><span class="comment">// void AScreenDebugMessageOnCollision::Tick(float DeltaTime)</span></span><br><span class="line"><span class="comment">// {</span></span><br><span class="line"><span class="comment">// 	Super::Tick(DeltaTime);</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// }</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">AScreenDebugMessageOnCollision::PostEditChangeProperty</span><span class="params">(FPropertyChangedEvent&amp; PropertyChangedEvent)</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">  Super::<span class="built_in">PostEditChangeProperty</span>(PropertyChangedEvent);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span>(PropertyChangedEvent.Property != <span class="literal">nullptr</span>)</span><br><span class="line">  {</span><br><span class="line">    FName PropertyName = PropertyChangedEvent.Property-&gt;<span class="built_in">GetFName</span>();</span><br><span class="line">    <span class="keyword">if</span>( PropertyName == <span class="built_in">GET_MEMBER_NAME_CHECKED</span>(AScreenDebugMessageOnCollision,ShapeComponent) )</span><br><span class="line">    {</span><br><span class="line">      <span class="keyword">if</span>(ShapeComponent)</span><br><span class="line">      {</span><br><span class="line">        <span class="keyword">if</span>(!ShapeComponent-&gt;<span class="built_in">GetAttachParent</span>())</span><br><span class="line">        {</span><br><span class="line">          <span class="comment">// UE_LOG(LogTemp,Warning,TEXT("Parent NULL"))</span></span><br><span class="line">          ShapeComponent-&gt;<span class="built_in">AttachToComponent</span>(RootComponent,FAttachmentTransformRules::KeepRelativeTransform);</span><br><span class="line">        }</span><br><span class="line">        <span class="keyword">else</span></span><br><span class="line">        {</span><br><span class="line">          <span class="comment">// UE_LOG(LogTemp,Warning,TEXT("Parent has"))</span></span><br><span class="line">        }</span><br><span class="line">      }</span><br><span class="line">    }</span><br><span class="line">  }</span><br><span class="line"></span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> AScreenDebugMessageOnCollision::<span class="built_in">NotifyActorBeginOverlap</span>(AActor* OtherActor)</span><br><span class="line">{</span><br><span class="line">  Super::<span class="built_in">NotifyActorBeginOverlap</span>(OtherActor);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span>(GEngine)</span><br><span class="line">  {</span><br><span class="line">    <span class="keyword">if</span>(BeginOverlapDebugMsg == <span class="built_in">TEXT</span>(<span class="string">""</span>))</span><br><span class="line">    {</span><br><span class="line">      FString str = <span class="built_in">GetName</span>() + <span class="built_in">TEXT</span>(<span class="string">" BeginOverlapDebugMsg Is NULL"</span>);</span><br><span class="line">      GEngine-&gt;<span class="built_in">AddOnScreenDebugMessage</span>(LocalUID, ShowTime, FColor::Red, str);</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    {</span><br><span class="line">      GEngine-&gt;<span class="built_in">AddOnScreenDebugMessage</span>(LocalUID, ShowTime, FColor::Green, BeginOverlapDebugMsg);</span><br><span class="line">    }</span><br><span class="line">  }</span><br><span class="line"></span><br><span class="line">}</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">AScreenDebugMessageOnCollision::NotifyActorEndOverlap</span><span class="params">(AActor* OtherActor)</span></span></span><br><span class="line"><span class="function"></span>{</span><br><span class="line">  Super::<span class="built_in">NotifyActorEndOverlap</span>(OtherActor);</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span>(GEngine)</span><br><span class="line">  {</span><br><span class="line">    <span class="keyword">if</span>(EndOverlapDebugMsg == <span class="built_in">TEXT</span>(<span class="string">""</span>))</span><br><span class="line">    {</span><br><span class="line">      FString str = <span class="built_in">GetName</span>() + <span class="built_in">TEXT</span>(<span class="string">" EndOverlapDebugMsg Is NULL"</span>);</span><br><span class="line">      GEngine-&gt;<span class="built_in">AddOnScreenDebugMessage</span>(LocalUID, ShowTime, FColor::Red, str);</span><br><span class="line">    }</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">    {</span><br><span class="line">      GEngine-&gt;<span class="built_in">AddOnScreenDebugMessage</span>(LocalUID, ShowTime, FColor::Green, EndOverlapDebugMsg);</span><br><span class="line">    }</span><br><span class="line">  }</span><br><span class="line"></span><br><span class="line">}</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+</ul>
+<p>  完毕  </p>
+<link rel="stylesheet" href="/assets/css/APlayer.min.css"><script src="/assets/js/APlayer.min.js"></script><div id="mmedia-EembLrnUXIykSeXJ"></div><script> var EembLrnUXIykSeXJ_options = JSON.parse('{\"lrcType\":0,\"theme\":\"#eeeeee\",\"autoplay\":true,\"volume\":0.3,\"fixed\":true,\"audio\":[{\"name\":\"风林火山~月光清澈之夜\",\"artist\":\" \",\"cover\":\"/assets/images/music.png\",\"url\":\"/assets/music/风林火山~月光清澈之夜.mp3\"},{\"name\":\"Master Boot Record - ANSI.SYS\",\"artist\":\" \",\"cover\":\"/assets/images/music.png\",\"url\":\"/assets/music/Master Boot Record - ANSI.SYS.mp3\"},{\"name\":\"Lost Years\",\"artist\":\" \",\"cover\":\"/assets/images/music.png\",\"url\":\"/assets/music/Lost Years.mp3\"}]}'); EembLrnUXIykSeXJ_options.container = document.getElementById("mmedia-EembLrnUXIykSeXJ"); const ap_EembLrnUXIykSeXJ = new APlayer(EembLrnUXIykSeXJ_options); </script>
+
+
+
+
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/Unreal-Engine/" rel="tag"># Unreal Engine</a>
+              <a href="/tags/C/" rel="tag"># C++</a>
+              <a href="/tags/Blueprint/" rel="tag"># Blueprint</a>
+              <a href="/tags/Component/" rel="tag"># Component</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2020/01/01/hello-world/" rel="prev" title="Hello World">
+                  <i class="fa fa-chevron-left"></i> Hello World
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+
+<div class="copyright">
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Lenots</span>
+</div>
+<div class="busuanzi-count">
+    <span class="post-meta-item" id="busuanzi_container_site_uv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-user"></i>
+      </span>
+      <span class="site-uv" title="总访客量">
+        <span id="busuanzi_value_site_uv"></span>
+      </span>
+    </span>
+    <span class="post-meta-item" id="busuanzi_container_site_pv">
+      <span class="post-meta-item-icon">
+        <i class="fa fa-eye"></i>
+      </span>
+      <span class="site-pv" title="总访问量">
+        <span id="busuanzi_value_site_pv"></span>
+      </span>
+    </span>
+</div><script color="0,0,0" color_darkmode="0,255,255" opacity='0.7' zIndex="-99" count="99" src="/assets/js/canvas-nest.js"></script>
+
+    </div>
+  </footer>
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/schemes/muse.js"></script><script src="/js/next-boot.js"></script>
+
+  
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+  
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+
+
+
+
+</body>
+</html>
